@@ -35,27 +35,19 @@ concurrency:
 
 jobs:
   build_push:
-    name: Build and push ${{ matrix.base_image }} ${{ matrix.stream }}
+    name: Build and push ${{ matrix.base_image_config.name }} ${{ matrix.stream }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Bazzite builds
-          - base_image: bazzite
-            base_image_url: ghcr.io/ublue-os/bazzite
-            stream: stable
-          - base_image: bazzite
-            base_image_url: ghcr.io/ublue-os/bazzite
-            stream: latest
-
-          # Aurora builds
-          - base_image: aurora
-            base_image_url: ghcr.io/ublue-os/aurora
-            stream: stable
-          - base_image: aurora
-            base_image_url: ghcr.io/ublue-os/aurora
-            stream: latest
+        base_image_config:
+          - {name: "bazzite", url: "ghcr.io/ublue-os/bazzite"}
+          - {name: "bazzite-dx", url: "ghcr.io/ublue-os/bazzite-dx"}
+          - {name: "aurora", url: "ghcr.io/ublue-os/aurora"}
+          - {name: "aurora-hwe", url: "ghcr.io/ublue-os/aurora-hwe"}
+          - {name: "aurora-dx", url: "ghcr.io/ublue-os/aurora-dx"}
+          - {name: "aurora-dx-hwe", url: "ghcr.io/ublue-os/aurora-dx-hwe"}
+        stream: [stable, latest]
 
     permissions:
       contents: read
@@ -91,8 +83,8 @@ jobs:
           # This generates all the tags for your image, you can add custom tags here too!
           # By default, it should generate "latest" and "latest.(date here)".
           tags: |
-            type=raw,value=${{ matrix.base_image }}-${{ matrix.stream }}
-            type=raw,value=${{ matrix.base_image }}-${{ matrix.stream }}.{{date 'YYYYMMDD'}}
+            type=raw,value=${{ matrix.base_image_config.name }}-${{ matrix.stream }}
+            type=raw,value=${{ matrix.base_image_config.name }}-${{ matrix.stream }}.{{date 'YYYYMMDD'}}
             type=sha,enable=${{ github.event_name == 'pull_request' }}
             type=ref,event=pr
           labels: |
@@ -104,9 +96,9 @@ jobs:
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.url=https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
             org.opencontainers.image.vendor=${{ github.repository_owner }}
-            org.opencontainers.image.version=${{ matrix.base_image }}-${{ matrix.stream }}
+            org.opencontainers.image.version=${{ matrix.base_image_config.name }}-${{ matrix.stream }}
             io.artifacthub.package.deprecated=false
-            io.artifacthub.package.keywords=bootc,ublue,universal-blue,${{ matrix.base_image }}
+            io.artifacthub.package.keywords=bootc,ublue,universal-blue,${{ matrix.base_image_config.name }}
             io.artifacthub.package.license=Apache-2.0
             io.artifacthub.package.logo-url=${{ env.ARTIFACTHUB_LOGO_URL }}
             io.artifacthub.package.prerelease=false
@@ -115,17 +107,17 @@ jobs:
           sep-annotations: " "
 
       # Create a temporary Containerfile with the correct base image
-      - name: Generate Containerfile for ${{ matrix.base_image }}
+      - name: Generate Containerfile for ${{ matrix.base_image_config.name }}
         run: |
           # Create a temporary Containerfile with the correct base image
-          sed "s|FROM ghcr.io/ublue-os/bazzite:stable|FROM ${{ matrix.base_image_url }}:${{ matrix.stream }}|" Containerfile > Containerfile.${{ matrix.base_image }}.${{ matrix.stream }}
+          sed "s|FROM ghcr.io/ublue-os/bazzite:stable|FROM ${{ matrix.base_image_config.url }}:${{ matrix.stream }}|" Containerfile > Containerfile.${{ matrix.base_image_config.name }}.${{ matrix.stream }}
 
       - name: Build Image
         id: build_image
         uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2
         with:
           containerfiles: |
-            ./Containerfile.${{ matrix.base_image }}.${{ matrix.stream }}
+            ./Containerfile.${{ matrix.base_image_config.name }}.${{ matrix.stream }}
           # Postfix image name with -custom to make it a little more descriptive
           # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
           image: ${{ env.IMAGE_NAME }}
