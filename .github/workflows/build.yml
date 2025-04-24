@@ -41,13 +41,10 @@ jobs:
       fail-fast: false
       matrix:
         base_image_config:
-          - {name: "bazzite", url: "ghcr.io/ublue-os/bazzite"}
           - {name: "bazzite-dx", url: "ghcr.io/ublue-os/bazzite-dx"}
-          - {name: "aurora", url: "ghcr.io/ublue-os/aurora"}
-          - {name: "aurora-hwe", url: "ghcr.io/ublue-os/aurora-hwe"}
-          - {name: "aurora-dx", url: "ghcr.io/ublue-os/aurora-dx"}
           - {name: "aurora-dx-hwe", url: "ghcr.io/ublue-os/aurora-dx-hwe"}
-        stream: [stable, latest]
+          - {name: "aurora-dx-nvidia-open", url: "ghcr.io/ublue-os/aurora-dx-nvidia-open"}
+        stream: [latest]
 
     permissions:
       contents: read
