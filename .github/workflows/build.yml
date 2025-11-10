@@ -42,7 +42,6 @@ jobs:
       matrix:
         base_image_config:
           - {name: "bazzite-dx", url: "ghcr.io/ublue-os/bazzite-dx"}
-          - {name: "aurora-dx-hwe", url: "ghcr.io/ublue-os/aurora-dx-hwe"}
           - {name: "aurora-dx-nvidia-open", url: "ghcr.io/ublue-os/aurora-dx-nvidia-open"}
         stream: [latest]
 
